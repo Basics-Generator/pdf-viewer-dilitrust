@@ -13,6 +13,7 @@ const saltRounds    			= 10;
 ////////////       POST CREATE USER             ////////////
 //////////////////////////////////////////////////////////// 
 exports.create = function(req, res) {
+
 	if (req.body.username == undefined || req.body.password == undefined || req.body.lastname == undefined || req.body.firstname == undefined ||
 		req.body.email == undefined || req.body.phone == undefined || req.body.country == undefined || req.body.city == undefined ||
 		req.body.postalCode == undefined || req.body.adress == undefined || req.body.birthday == undefined || req.body.description == undefined ||
@@ -26,23 +27,26 @@ exports.create = function(req, res) {
 		return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Empty parameters');
 	}
 
-	User.find({$or:[ {'username': req.body.username}, {'email': req.body.email}]} , function(err, users) {
+	User.findOne({username: req.body.username}).exec(function(err, user){
 		if (err) throw err;
-		if (users.length > 0) { return ResponseGenerator.getInstance().generate(res, "CREATE USER", 409, 'Email or username already exist'); }
-		if (validator.validate(req.body.email)) {
-        	if (req.body.password.length > 6) {
-                createUser(req, res, function(res) {
-                	return ResponseGenerator.getInstance().generate(res, "CREATE USER", 201, 'User created successfully')
-				});
-            }
-            else {
-                return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Invalid Password (lenght need to be greater than 6)')
-            }
-        }
-        else {
-            return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Invalid email')
-        }
-
+		if (user) { return ResponseGenerator.getInstance().generate(res, "CREATE USER", 409, 'Username already exist'); }
+		User.findOne({email: req.body.email}).exec(function(err, user){
+			if (err) throw err;
+			if (user) { return ResponseGenerator.getInstance().generate(res, "CREATE USER", 409, 'Email already exist'); }
+			if (validator.validate(req.body.email)){
+	        if (req.body.password.length > 6){
+	                createUser(req, res, function(res) {
+	                	return ResponseGenerator.getInstance().generate(res, "CREATE USER", 201, 'User created successfully')
+					});
+	            }
+	            else {
+	                return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Invalid Password (lenght need to be greater than 6)')
+	            }
+	        }
+	        else {
+	            return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Invalid email')
+	        }
+		});
 	});
 }
 
@@ -53,7 +57,7 @@ function createUser(req, res, successCallback) {
 			if (err) throw err;
             var refreshToken = randomstring.generate(32);
             var generated_photo_name = randomstring.generate(32);
-			var photo_path = __dirname + "/../../../../public/uploads/photo/" + generated_photo_name;
+			var photo_path = __dirname + "/../../../../public/uploads/photo/" + generated_photo_name + path.extname(req.files.photo.path);
 			fs.writeFile(photo_path, data_photo, function (err) {
 				if (err) throw err;
 				var newU = new User({
