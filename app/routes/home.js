@@ -7,6 +7,5 @@ var urlencodedParser        = bodyParser.urlencoded({ extended: false });
 
 
 router.get('/', home.home);
-router.get('/forgotPassword', home.forgotPassword);
 
 module.exports = router;

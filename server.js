@@ -4,6 +4,8 @@ var config        	= require('./config');
 var route        	= require('./routes.js');
 var app 			= express();
 
+var utils           = require('./app/controllers/api/user/utils.js');
+
 var bodyParser      = require('body-parser');
 
 const PORT 			= process.env.PORT || 3001
@@ -15,8 +17,6 @@ var options = {
 };
 mongoose.connect(config.database, options);
 
-app.use(express.static(__dirname + '/public'));
-
 // views is directory for all template files
 app.set('/app/views', __dirname + '/app/views');
 app.set('views engine', 'ejs');
@@ -24,6 +24,9 @@ app.set('views engine', 'ejs');
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true }));
 app.use(route); 
+
+app.use(utils.isAuth, express.static(__dirname + '/public'));
+
 
 app.listen(PORT, function() {
   console.log('Node app is running on port', PORT);

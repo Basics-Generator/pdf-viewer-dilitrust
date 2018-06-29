@@ -7,7 +7,7 @@ var SessionAuth    = require("../../../models/user/sessionAuth.js");
 /////////////       VERIFICATION TOKEN          //////////// 
 ////////////////////////////////////////////////////////////          
 exports.isAuth = function (req, res, next) {
-    var token = req.body.authorization || req.params.authorization || req.headers['authorization'];
+    var token = req.headers['authorization'];
     if (token) {
         SessionAuth.findOne({token : token}).populate('user').exec(function(err, sessionAuth) {
             if (err) throw err;

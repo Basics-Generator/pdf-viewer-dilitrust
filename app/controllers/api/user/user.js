@@ -14,16 +14,11 @@ const saltRounds    			= 10;
 //////////////////////////////////////////////////////////// 
 exports.create = function(req, res) {
 
-	if (req.body.username == undefined || req.body.password == undefined || req.body.lastname == undefined || req.body.firstname == undefined ||
-		req.body.email == undefined || req.body.phone == undefined || req.body.country == undefined || req.body.city == undefined ||
-		req.body.postalCode == undefined || req.body.adress == undefined || req.body.birthday == undefined || req.body.description == undefined ||
-		req.files.photo == undefined) {
+	if (req.body.username == undefined || req.body.password == undefined || req.body.email == undefined ) {
 		return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Missing parameters');
 	}
 
-	if (req.body.username == "" || req.body.password == "" || req.body.lastname == "" || req.body.firstname == "" ||
-		req.body.email == "" || req.body.phone == "" || req.body.country == "" || req.body.city == "" ||
-		req.body.postalCode == "" || req.body.adress == "" || req.body.birthday == "" || req.body.description == "") {
+	if (req.body.username == "" || req.body.password == "" || req.body.email == "") {
 		return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Empty parameters');
 	}
 
@@ -51,43 +46,25 @@ exports.create = function(req, res) {
 }
 
 function createUser(req, res, successCallback) {
-	fs.readFile(req.files.photo.path, function (err, data_photo) {
+	bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
 		if (err) throw err;
-		bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-			if (err) throw err;
-            var refreshToken = randomstring.generate(32);
-            var generated_photo_name = randomstring.generate(32);
-			var photo_path = __dirname + "/../../../../public/uploads/photo/" + generated_photo_name + path.extname(req.files.photo.path);
-			fs.writeFile(photo_path, data_photo, function (err) {
-				if (err) throw err;
-				var newU = new User({
-					username				: req.body.username,
-					password				: hash,
-					lastname				: req.body.lastname,
-					firstname				: req.body.firstname,
-					email					: req.body.email,
-					phone					: req.body.phone,
-					country					: req.body.country,
-					city					: req.body.city,
-					postalCode				: req.body.postalCode,
-					adress					: req.body.adress,
-					birthday				: req.body.birthday,
-					description				: req.body.description,
-					refreshToken			: refreshToken,
-					photo					: "/uploads/photo/" + generated_photo_name + path.extname(req.files.photo.path),
-					photoThumb				: "/uploads/photo/" + generated_photo_name + path.extname(req.files.photo.path),
-					createdAt				: Date(),
-					updateAt				: Date(),
-					enabled					: true,
-					sessionsAuth			: null,
-					sessionsChangePassword	: null
-				});	
+        var refreshToken = randomstring.generate(32);
+		if (err) throw err;
+		var newU = new User({
+			username				: req.body.username,
+			password				: hash,
+			email					: req.body.email,
+			refreshToken			: refreshToken,
+			createdAt				: Date(),
+			updateAt				: Date(),
+			enabled					: true,
+			sessionsAuth			: null,
+			sessionsChangePassword	: null
+		});	
 
-				newU.save(function(err) {
-					if (err) throw err;
-					successCallback(res);
-				});
-			});
+		newU.save(function(err) {
+			if (err) throw err;
+			successCallback(res);
 		});
 	});
 }
