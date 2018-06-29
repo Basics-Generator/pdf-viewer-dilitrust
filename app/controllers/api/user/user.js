@@ -13,7 +13,7 @@ const saltRounds    			= 10;
 ////////////       POST CREATE USER             ////////////
 //////////////////////////////////////////////////////////// 
 exports.create = function(req, res) {
-
+	console.log(req.body);
 	if (req.body.username == undefined || req.body.password == undefined || req.body.email == undefined ) {
 		return ResponseGenerator.getInstance().generate(res, "CREATE USER", 400, 'Missing parameters');
 	}
